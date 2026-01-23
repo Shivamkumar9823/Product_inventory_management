@@ -1,4 +1,5 @@
 import { Product } from "@/types/product";
+import Cookies from "js-cookie";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -13,7 +14,55 @@ export async function getProducts(): Promise<Product[]> {
 }
 
 
-// import { Product } from "@/types/product";
+
+function authHeaders() {
+  const token = Cookies.get("token");
+
+  return {
+    "Content-Type": "application/json",
+    ...(token && { Authorization: `Bearer ${token}` }),
+  };
+}
+
+
+export async function loginUser(data: {
+  email: string;
+  password: string;
+}) {
+  const res = await fetch(`${BASE_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    throw new Error("Login failed");
+  }
+
+  return res.json(); 
+  // expected: { token, user }
+}
+
+export async function signupUser(data: {
+  name: string;
+  email: string;
+  password: string;
+}) {
+  const res = await fetch(`${BASE_URL}/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    throw new Error("Signup failed");
+  }
+
+  return res.json();
+}
+
+
+
 
 export async function createProduct(
   product: Omit<Product, "id">

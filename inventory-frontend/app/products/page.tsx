@@ -7,7 +7,9 @@ import { getProducts, deleteProduct } from "@/services/api";
 import { Product } from "@/types/product";
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>([]
+    
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -63,6 +65,7 @@ export default function ProductsPage() {
                 <td className="px-4 py-2">{p.category}</td>
                 <td className="px-4 py-2">₹{p.price}</td>
                 <td className="px-4 py-2">{p.quantity}</td>
+                
                 <td className="px-4 py-2 space-x-3">
                   <button
                     onClick={() =>
