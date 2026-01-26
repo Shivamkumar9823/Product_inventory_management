@@ -16,8 +16,11 @@ func Connect() {
 	port := getEnv("DB_PORT", "5432")
 	user := getEnv("DB_USER", "postgres")
 	password := getEnv("DB_PASSWORD", "postgres")
-	dbname := getEnv("DB_NAME", "inventory_new")
-	sslmode := getEnv("DB_SSLMODE", "disable")
+
+	// IMPORTANT: RDS default db name is "postgres"
+	dbname := getEnv("DB_NAME", "postgres")
+
+	sslmode := getEnv("DB_SSLMODE", "require") // for AWS RDS
 
 	connStr := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
@@ -27,12 +30,15 @@ func Connect() {
 	var err error
 	DB, err = sqlx.Connect("postgres", connStr)
 	if err != nil {
-		log.Fatalf("DB Error: %v", err)
+		log.Fatalf("❌ Failed to connect DB: %v", err)
 	}
 
-	fmt.Println("✅ Connected to Postgres at:", host)
+	fmt.Printf("✅ Connected to Postgres at: %s (dbname: %s)\n", host, dbname)
 
-	createTables()
+	// AUTO MIGRATE only when manually enabled
+	if getEnv("AUTO_MIGRATE", "false") == "true" {
+		createTables()
+	}
 }
 
 func createTables() {
@@ -54,22 +60,19 @@ func createTables() {
 		user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE
 	);`
 
-	_, err := DB.Exec(userTable)
-	if err != nil {
-		fmt.Println("Error creating users table:", err)
+	if _, err := DB.Exec(userTable); err != nil {
+		fmt.Println("❌ Error creating users table:", err)
 	} else {
 		fmt.Println("✔ users table ready")
 	}
 
-	_, err = DB.Exec(productTable)
-	if err != nil {
-		fmt.Println("Error creating products table:", err)
+	if _, err := DB.Exec(productTable); err != nil {
+		fmt.Println("❌ Error creating products table:", err)
 	} else {
 		fmt.Println("✔ products table ready")
 	}
 }
 
-// helper for default fallback
 func getEnv(key, fallback string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
