@@ -106,8 +106,10 @@ export default function AuthForm() {
       const { token, user } = response;
 
       login(token, user);
+
     } catch (err) {
-      alert("Authentication failed");
+      // alert("Authentication failed");
+      alert(err instanceof Error ? err.message : "Authentication failed");
     } finally {
       setLoading(false);
     }

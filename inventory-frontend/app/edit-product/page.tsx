@@ -2,15 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import {
-  getProductById,
-  updateProduct,
-} from "@/services/api";
+import { updateProduct } from "@/services/api";
+import { useProducts } from "@/context/ProductContext";
+import { getProducts } from "@/services/api";
 
 export default function EditProductPage() {
+  console.log("EditProductPage rendered");
   const params = useSearchParams();
   const router = useRouter();
+
+  const { getProductById, setProducts } = useProducts();
   const id = params.get("id");
+  const product = id ? getProductById(id) : undefined;
 
   const [form, setForm] = useState({
     name: "",
@@ -19,24 +22,25 @@ export default function EditProductPage() {
     quantity: "",
   });
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (!id) return;
 
-    getProductById(id)
-      .then((p) =>
-        setForm({
-          name: p.name,
-          category: p.category,
-          price: String(p.price),
-          quantity: String(p.quantity),
-        })
-      )
-      .catch(() => setError("Unable to load product"))
-      .finally(() => setLoading(false));
-  }, [id]);
+  useEffect(() => {
+    if (!product) return;
+
+
+    setForm({
+      name: product.name,
+      category: product.category,
+      price: String(product.price),
+      quantity: String(product.quantity),
+    });
+  }, [product]);
+
+  console.log("Product to edit:", product);
+
+  console.log("Form state:", form);
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement>
@@ -54,6 +58,10 @@ export default function EditProductPage() {
         price: Number(form.price),
         quantity: Number(form.quantity),
       });
+
+      const fresh = await getProducts();
+      
+      setProducts(fresh);
 
       router.push("/products");
     } catch {

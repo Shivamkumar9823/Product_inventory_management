@@ -5,22 +5,54 @@ import { useRouter } from "next/navigation";
 
 import { getProducts, deleteProduct } from "@/services/api";
 import { Product } from "@/types/product";
+import { useProducts } from "@/context/ProductContext";
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]
-    
-  );
-  const [loading, setLoading] = useState(true);
+  
+
+  const { setProducts,products } = useProducts();
+  const [filtered, setFiltered] = useState<Product[]>(products);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [filterType, setFilterType] = useState<"all" | "name" | "category">("all");
 
   const router = useRouter();
 
   useEffect(() => {
-    getProducts()
-      .then(setProducts)
-      .catch(() => setError("Unable to load products"))
-      .finally(() => setLoading(false));
-  }, []);
+    setFiltered(products);
+  }, [products]);
+
+  
+  function handleSearch(value: string, type = filterType) {
+  setSearch(value);
+
+  if (!value) {
+    setFiltered(products);
+    return;
+  }
+
+  const query = value.toLowerCase();
+
+  const result = products.filter((p) => {
+    if (type === "name") {
+      return p.name.toLowerCase().includes(query);
+    }
+
+    if (type === "category") {
+      return p.category.toLowerCase().includes(query);
+    }
+
+    return (
+      p.name.toLowerCase().includes(query) ||
+      p.category.toLowerCase().includes(query)
+    );
+  });
+
+  setFiltered(result);
+}
+
+
 
   async function handleDelete(id: string) {
     const confirmed = confirm("Are you sure you want to delete this product?");
@@ -45,6 +77,30 @@ export default function ProductsPage() {
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4">Products</h2>
+      <div className="flex gap-3 mb-4">
+  <input
+    type="text"
+    placeholder="Search..."
+    value={search}
+    onChange={(e) => handleSearch(e.target.value)}
+    className="border px-3 py-2 rounded w-64"
+  />
+
+  <select
+    value={filterType}
+    onChange={(e) => {
+    const newType = e.target.value as any;
+    setFilterType(newType);
+    handleSearch(search,newType);
+    }}
+    className="border px-3 py-2 rounded"
+  >
+    <option value="all">All</option>
+    <option value="name">Name</option>
+    <option value="category">Category</option>
+  </select>
+</div>
+
 
       <div className="bg-white rounded shadow overflow-x-auto">
         <table className="min-w-full text-sm">
@@ -58,8 +114,8 @@ export default function ProductsPage() {
             </tr>
           </thead>
 
-          <tbody>
-            {products.map((p) => (
+          {filtered !== null && <tbody>
+            {filtered.map((p) => (
               <tr key={p.id} className="border-t">
                 <td className="px-4 py-2">{p.name}</td>
                 <td className="px-4 py-2">{p.category}</td>
@@ -85,10 +141,10 @@ export default function ProductsPage() {
                 </td>
               </tr>
             ))}
-          </tbody>
+          </tbody> }
         </table>
 
-        {products.length === 0 && (
+        {filtered === null && (
           <p className="p-4 text-center text-gray-500">
             No products found
           </p>

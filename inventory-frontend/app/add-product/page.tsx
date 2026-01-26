@@ -4,11 +4,16 @@ import * as Sentry from "@sentry/nextjs";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createProduct } from "@/services/api";
+import { useProducts } from "@/context/ProductContext";
+import { getProducts } from "@/services/api";
+
 
 Sentry.captureMessage("User opened Add Product page");
 
 export default function AddProductPage() {
   const router = useRouter();
+  const { setProducts } = useProducts();
+
 
   const [form, setForm] = useState({
     name: "",
@@ -45,6 +50,11 @@ export default function AddProductPage() {
         quantity: Number(form.quantity),
       });
 
+      const fresh = await getProducts();
+
+      setProducts(fresh);
+
+      
       router.push("/products");
     } catch(err) {
         Sentry.captureException(err);
