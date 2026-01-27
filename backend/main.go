@@ -16,10 +16,11 @@ func main() {
 
 	r := gin.Default()
 
-	config := cors.Config{
-	AllowOrigins:     []string{"http://localhost:3000", "https://myfrontend.com"},
-	}
-	r.Use(cors.New(config))
+r.Use(cors.New(cors.Config{
+    AllowOrigins: []string{"*"},
+    AllowMethods: []string{"GET", "POST", "PUT", "DELETE"},
+    AllowHeaders: []string{"Content-Type", "Authorization"},
+}))
 
 	// Init product repository → service → handler
 	productRepo := repositories.NewProductRepo(db.DB)
