@@ -1,121 +1,135 @@
-"use client";
-export const dynamic = "force-dynamic";
+// "use client";
+// export const dynamic = "force-dynamic";
 
 
-import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { updateProduct } from "@/services/api";
-import { useProducts } from "@/context/ProductContext";
-import { getProducts } from "@/services/api";
+// import { useEffect, useState } from "react";
+// import { useSearchParams, useRouter } from "next/navigation";
+// import { updateProduct } from "@/services/api";
+// import { useProducts } from "@/context/ProductContext";
+// import { getProducts } from "@/services/api";
 
-export default function EditProductPage() {
-  console.log("EditProductPage rendered");
-  const params = useSearchParams();
-  const router = useRouter();
+// export default function EditProductPage() {
+//   console.log("EditProductPage rendered");
+//   const params = useSearchParams();
+//   const router = useRouter();
 
-  const { getProductById, setProducts } = useProducts();
-  const id = params.get("id");
-  const product = id ? getProductById(id) : undefined;
+//   const { getProductById, setProducts } = useProducts();
+//   const id = params.get("id");
+//   const product = id ? getProductById(id) : undefined;
 
-  const [form, setForm] = useState({
-    name: "",
-    category: "",
-    price: "",
-    quantity: "",
-  });
+//   const [form, setForm] = useState({
+//     name: "",
+//     category: "",
+//     price: "",
+//     quantity: "",
+//   });
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-
-  useEffect(() => {
-    if (!product) return;
+//   const [loading, setLoading] = useState(false);
+//   const [error, setError] = useState("");
 
 
-    setForm({
-      name: product.name,
-      category: product.category,
-      price: String(product.price),
-      quantity: String(product.quantity),
-    });
-  }, [product]);
+//   useEffect(() => {
+//     if (!product) return;
 
-  console.log("Product to edit:", product);
 
-  console.log("Form state:", form);
+//     setForm({
+//       name: product.name,
+//       category: product.category,
+//       price: String(product.price),
+//       quantity: String(product.quantity),
+//     });
+//   }, [product]);
 
-  function handleChange(
-    e: React.ChangeEvent<HTMLInputElement>
-  ) {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  }
+//   console.log("Product to edit:", product);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+//   console.log("Form state:", form);
 
-    try {
-      await updateProduct(id!, {
-        name: form.name,
-        category: form.category,
-        price: Number(form.price),
-        quantity: Number(form.quantity),
-      });
+//   function handleChange(
+//     e: React.ChangeEvent<HTMLInputElement>
+//   ) {
+//     setForm({ ...form, [e.target.name]: e.target.value });
+//   }
 
-      const fresh = await getProducts();
+//   async function handleSubmit(e: React.FormEvent) {
+//     e.preventDefault();
+
+//     try {
+//       await updateProduct(id!, {
+//         name: form.name,
+//         category: form.category,
+//         price: Number(form.price),
+//         quantity: Number(form.quantity),
+//       });
+
+//       const fresh = await getProducts();
       
-      setProducts(fresh);
+//       setProducts(fresh);
 
-      router.push("/products");
-    } catch {
-      setError("Update failed");
-    }
-  }
+//       router.push("/products");
+//     } catch {
+//       setError("Update failed");
+//     }
+//   }
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p className="text-red-500">{error}</p>;
+//   if (loading) return <p>Loading...</p>;
+//   if (error) return <p className="text-red-500">{error}</p>;
 
+//   return (
+//     <div className="max-w-lg">
+//       <h2 className="text-2xl font-bold mb-4">Edit Product</h2>
+
+//       <form
+//         onSubmit={handleSubmit}
+//         className="bg-white p-6 rounded shadow space-y-4"
+//       >
+//         <input
+//           name="name"
+//           value={form.name}
+//           onChange={handleChange}
+//           className="w-full border px-3 py-2 rounded"
+//         />
+
+//         <input
+//           name="category"
+//           value={form.category}
+//           onChange={handleChange}
+//           className="w-full border px-3 py-2 rounded"
+//         />
+
+//         <input
+//           name="price"
+//           type="number"
+//           value={form.price}
+//           onChange={handleChange}
+//           className="w-full border px-3 py-2 rounded"
+//         />
+
+//         <input
+//           name="quantity"
+//           type="number"
+//           value={form.quantity}
+//           onChange={handleChange}
+//           className="w-full border px-3 py-2 rounded"
+//         />
+
+//         <button className="bg-blue-600 text-white px-4 py-2 rounded">
+//           Update Product
+//         </button>
+//       </form>
+//     </div>
+//   );
+// }
+
+"use client";
+
+import { Suspense } from "react";
+import EditProductClient from "./EditProductClient";
+
+export default function Page() {
   return (
-    <div className="max-w-lg">
-      <h2 className="text-2xl font-bold mb-4">Edit Product</h2>
-
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-6 rounded shadow space-y-4"
-      >
-        <input
-          name="name"
-          value={form.name}
-          onChange={handleChange}
-          className="w-full border px-3 py-2 rounded"
-        />
-
-        <input
-          name="category"
-          value={form.category}
-          onChange={handleChange}
-          className="w-full border px-3 py-2 rounded"
-        />
-
-        <input
-          name="price"
-          type="number"
-          value={form.price}
-          onChange={handleChange}
-          className="w-full border px-3 py-2 rounded"
-        />
-
-        <input
-          name="quantity"
-          type="number"
-          value={form.quantity}
-          onChange={handleChange}
-          className="w-full border px-3 py-2 rounded"
-        />
-
-        <button className="bg-blue-600 text-white px-4 py-2 rounded">
-          Update Product
-        </button>
-      </form>
-    </div>
+    <Suspense fallback={<p>Loading...</p>}>
+      <EditProductClient />
+    </Suspense>
   );
 }
+
