@@ -7,17 +7,34 @@ import { send } from "process";
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export async function getProducts(): Promise<Product[]> {
+  try {
   const res = await fetch(`${BASE_URL}/api/products`, {
     method: "GET",
     headers: authHeaders(),
   });
 
+  // if (!res.ok) {
+  //   Sentry.captureException(`Failed to fetch products: ${res.statusText}`);
+  //   throw new Error("Failed to fetch products");
+  // }
   if (!res.ok) {
-    Sentry.captureException(`Failed to fetch products: ${res.statusText}`);
-    throw new Error("Failed to fetch products");
+    let backendError = "Failed to fetch products";
+
+    try {
+      const errData = await res.json();
+      backendError = errData.error || backendError;
+    } catch {}
+
+    const error = new Error(backendError);
+    Sentry.captureException(error);
+    throw error;
   }
 
   return res.json();
+} catch (error) {
+  Sentry.captureException(error);
+  throw error;
+}
 }
 
 
